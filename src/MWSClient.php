@@ -28,20 +28,23 @@ class MWSClient{
         'Application_Version' => '0.0.*'
     ];
 
+    //https://docs.developer.amazonservices.com/en_US/dev_guide/DG_Endpoints.html
     private $MarketplaceIds = [
-        'A2EUQ1WTGCTBG2' => 'mws.amazonservices.ca',
-        'ATVPDKIKX0DER' => 'mws.amazonservices.com',
-        'A1AM78C64UM0Y8' => 'mws.amazonservices.com.mx',
-        'A1PA6795UKMFR9' => 'mws-eu.amazonservices.com',
-        'A1RKKUPIHCS9HS' => 'mws-eu.amazonservices.com',
-        'A13V1IB3VIYZZH' => 'mws-eu.amazonservices.com',
-        'A21TJRUUN4KGV' => 'mws.amazonservices.in',
-        'APJ6JRA9NG5V4' => 'mws-eu.amazonservices.com',
-        'A1F83G8C2ARO7P' => 'mws-eu.amazonservices.com',
-        'A1VC38T7YXB528' => 'mws.amazonservices.jp',
-        'AAHKV2X7AFYLW' => 'mws.amazonservices.com.cn',
-        'A39IBJ37TRP1C6' => 'mws.amazonservices.com.au',
-	'A2Q3Y263D00KWC' => 'mws.amazonservices.com'
+        'A2EUQ1WTGCTBG2'    => 'mws.amazonservices.ca',
+        'ATVPDKIKX0DER'     => 'mws.amazonservices.com',
+        'A1AM78C64UM0Y8'    => 'mws.amazonservices.com.mx',
+        'A1PA6795UKMFR9'    => 'mws-eu.amazonservices.com',
+        'A1RKKUPIHCS9HS'    => 'mws-eu.amazonservices.com',
+        'A13V1IB3VIYZZH'    => 'mws-eu.amazonservices.com',
+        'A21TJRUUN4KGV'     => 'mws.amazonservices.in',
+        'APJ6JRA9NG5V4'     => 'mws-eu.amazonservices.com',
+        'A1F83G8C2ARO7P'    => 'mws-eu.amazonservices.com',
+        'A1VC38T7YXB528'    => 'mws.amazonservices.jp',
+        'AAHKV2X7AFYLW'     => 'mws.amazonservices.com.cn',
+        'A39IBJ37TRP1C6'    => 'mws.amazonservices.com.au',
+        'A2Q3Y263D00KWC'    => 'mws.amazonservices.com',
+        'A1805IZSGTT6HS'    => 'mws-eu.amazonservices.com',
+        'A1F83G8C2ARO7P'    => 'mws-eu.amazonservices.com',
     ];
 
     protected $debugNextFeed = false;
