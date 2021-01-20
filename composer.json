@@ -1,13 +1,23 @@
 {
-    "name": "mcs/amazon-mws",
-    "description": "Library to interface with Amazon MWS",
+    "name": "josalba/amazon-mws",
+    "description": "Biblioteca para interactuar con Amazon MWS",
     "license": "MIT",
     "keywords": ["amazon", "mws"],
     "minimum-stability": "dev",
     "authors": [
         {
+            "name": "josAlba",
+            "email": "hola@josalba.dev"
+        },
+        {
             "name": "Michiel Meertens",
             "email": "meertensmichiel28@gmail.com"
+        }
+    ],
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/josAlba/amazon-mws"
         }
     ],
     "require": {
