@@ -2,11 +2,11 @@
 
 Interacción con Amazon Api para proveedores llamados MWS
 
-### Installation:
+### Instalar
 ```bash
 $ composer require josalba/amazon-mws
 ```
-### Initiate the client
+### Iniciar cliente
 ```php
 require_once 'vendor/autoload.php';
 
@@ -25,7 +25,7 @@ if ($client->validateCredentials()) {
     // Credentials are not valid
 }
 ```
-### Get orders
+### Recuperar pedidos
 ```php
 $fromDate = new DateTime('2016-01-01');
 $orders = $client->ListOrders($fromDate);
@@ -35,7 +35,7 @@ foreach ($orders as $order) {
     print_r($items);
 }
 ```
-### Get product attributes
+### Recuperar atributos producto
 ```php
 $searchField = 'ASIN'; // Can be GCID, SellerSKU, UPC, EAN, ISBN, or JAN
 
@@ -45,7 +45,7 @@ $result = $client->GetMatchingProductForId([
 
 print_r($result);
 ```
-### Create or update a product
+### Crear o actualizar producto
 ```php
 $product = new MCS\MWSProduct();
 $product->sku = 'TESTNOTFORSALE';
@@ -63,7 +63,7 @@ if ($product->validate()) {
 }  
 ```
 
-### Update product stock
+### Actualizar stock del productos
 ```php
 $result = $client->updateStock([
     'sku1' => 20,
@@ -75,7 +75,8 @@ $info = $client->GetFeedSubmissionResult($result['FeedSubmissionId']);
 print_r($info);
 ```
 
-### Update product stock with fulfillment latency specified
+### Actualizar stock y latencia del producto
+Actualizar stock y tiempo de preparacion del producto.
 ```php
 $result = $client->updateStockWithFulfillmentLatency([
     ['sku' => 'sku1', 'quantity' => 20, 'latency' => 1],
@@ -87,7 +88,7 @@ $info = $client->GetFeedSubmissionResult($result['FeedSubmissionId']);
 print_r($info);
 ```
 
-### Update product pricing
+### Actualizar precio de productos
 ```php
 $result = $client->updatePrice([
     'sku1' => '20.99',
@@ -108,8 +109,8 @@ $report_content = $client->GetReport($reportId);
 print_r($report_content);
 ```
 
-### Update tracking order
-Update the tracking of an amazon order.
+### Actualizar tracking
+Actualizar el tracking de un pedido.
 ```php
 $return = $client->setTracking(
     "XXX-XXXXXXX-XXXXXXX",  //Order id
