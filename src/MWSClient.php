@@ -1390,54 +1390,52 @@ class MWSClient{
     /**
      * Recuperar la agencia de envio
      * @param string $amazon_order Id de amazon
-     * @param string $shippingAddressName Nombre del cliente
-     * @param string $shippingAddressAddressLine1 Direccion del cliente
-     * @param string $shippingAddressCity Ciudad
-     * @param string $shippingAddressStateOrProvinceCode Provincia
-     * @param string $shippingAddressPostalCode Codigo postal
-     * @param string $shippingAddressCountryCode Codigo Pais
-     * @param string $shippingAddressEmail Email
-     * @param string $shippingAddressPhone Telefono
      * 
      * @param array $bulto_L Dimensiones del paquete.
      * @param array $bulto_W Dimensiones del paquete.
      * @param array $bulto_H Dimensiones del paquete.
-     * @param array $bulto_Weight Dimensiones del paquete.
-     * 
-     * @param array $bulto_products Productos.
+     * @param array $bulto_Weight Dimensiones del paquete. 
      * 
      * 
      * @return bool
      */
-    private function GetEligibleShippingServices(
-        $amazon_order,
-        $shippingAddressName,    
-        $shippingAddressAddressLine1,
-        $shippingAddressCity,
-        $shippingAddressStateOrProvinceCode,
-        $shippingAddressPostalCode,
-        $shippingAddressCountryCode,
-        $shippingAddressEmail,
-        $shippingAddressPhone,
+    public function GetEligibleShippingServices(
+        $AmazonOrderId,
         $bulto_L,
         $bulto_W,
         $bulto_H,
         $bulto_Weight,
-        $bulto_products,
+        $CarrierWillPickUp='true',
         $bulto_type_unit_dimensions = "centimeters",
         $bulto_type_unit_weight     = "grams"
     ){
 
+        $data_by_amazon = $this->GetOrder($AmazonOrderId);
+
+        $name=$data_by_amazon['ShippingAddress']['Name'];
+        $name= str_replace(',','',$name);
+        $name= str_replace('.','',$name);
+
+        $dir1 = "";
+        $dir2 = "";
+        if(isset($data_by_amazon['ShippingAddress']['AddressLine1'])){
+            $dir1 .= $data_by_amazon['ShippingAddress']['AddressLine1'];
+        }
+        if(isset($data_by_amazon['ShippingAddress']['AddressLine2'])){
+            $dir2 .= $data_by_amazon['ShippingAddress']['AddressLine2'];
+        }
+
         $ShipmentRequestDetails = array(
-            'ShipmentRequestDetails.AmazonOrderId'                              =>$amazon_order, //Id del pedido en amazon
+            'ShipmentRequestDetails.AmazonOrderId'                              =>$AmazonOrderId, //Id del pedido en amazon
             /** Direccion y datos de entrega */
-            'ShipmentRequestDetails.ShipFromAddress.Name'                       =>$shippingAddressName,
-            'ShipmentRequestDetails.ShipFromAddress.AddressLine1'               =>$shippingAddressAddressLine1,
-            'ShipmentRequestDetails.ShipFromAddress.City'                       =>$shippingAddressCity,
-            'ShipmentRequestDetails.ShipFromAddress.PostalCode'                 =>$shippingAddressPostalCode,
-            'ShipmentRequestDetails.ShipFromAddress.CountryCode'                =>$shippingAddressCountryCode,
-            'ShipmentRequestDetails.ShipFromAddress.Email'                      =>$shippingAddressEmail,
-            'ShipmentRequestDetails.ShipFromAddress.Phone'                      =>$shippingAddressPhone,
+            'ShipmentRequestDetails.ShipFromAddress.Name'                       =>$name,
+            'ShipmentRequestDetails.ShipFromAddress.AddressLine1'               =>$dir1,
+            'ShipmentRequestDetails.ShipFromAddress.AddressLine2'               =>$dir2,
+            'ShipmentRequestDetails.ShipFromAddress.City'                       =>$data_by_amazon['ShippingAddress']['City'],
+            'ShipmentRequestDetails.ShipFromAddress.PostalCode'                 =>$data_by_amazon['ShippingAddress']['PostalCode'],
+            'ShipmentRequestDetails.ShipFromAddress.CountryCode'                =>$data_by_amazon['ShippingAddress']['CountryCode'],
+            'ShipmentRequestDetails.ShipFromAddress.Email'                      =>$data_by_amazon['BuyerEmail'],
+            'ShipmentRequestDetails.ShipFromAddress.Phone'                      =>$data_by_amazon['ShippingAddress']['Phone'],
             /** Dimensiones del envio */
             'ShipmentRequestDetails.PackageDimensions.Length'                   =>0,
             'ShipmentRequestDetails.PackageDimensions.Width'                    =>0,
@@ -1448,7 +1446,7 @@ class MWSClient{
             'ShipmentRequestDetails.Weight.Unit'                                =>$bulto_type_unit_weight,
             /** Valores para la agencia */
             'ShipmentRequestDetails.ShippingServiceOptions.DeliveryExperience'  =>'DeliveryConfirmationWithoutSignature',
-            'ShipmentRequestDetails.ShippingServiceOptions.CarrierWillPickUp'   =>'false',
+            'ShipmentRequestDetails.ShippingServiceOptions.CarrierWillPickUp'   =>$CarrierWillPickUp,
         
             /** Indica si es nacional o internacional */
             'ShippingOfferingFilter.IncludeComplexShippingOptions'              =>'false'
@@ -1461,18 +1459,116 @@ class MWSClient{
         $ShipmentRequestDetails['ShipmentRequestDetails.PackageDimensions.Height']  = $bulto_H;
         $ShipmentRequestDetails['ShipmentRequestDetails.Weight.Value']              = $bulto_Weight;
 
-        /** Añadimos las lineas del pedido a la generacion de etiquetas */
-        for($i=0;$i<count($bulto_products);$i++){
+        $producto = $this->ListOrderItems($AmazonOrderId);
 
-            $ShipmentRequestDetails['ShipmentRequestDetails.ItemList.Item.'.($i+1).'.OrderItemId']  = $bulto_products[$i]['OrderItemId'];
-            $ShipmentRequestDetails['ShipmentRequestDetails.ItemList.Item.'.($i+1).'.Quantity']     = $bulto_products[$i]['Quantity'];
+        
+
+        /** Añadimos las lineas del pedido a la generacion de etiquetas */
+        
+        for($i=0;$i<count($producto);$i++){
+
+            $ShipmentRequestDetails['ShipmentRequestDetails.ItemList.Item.'.($i+1).'.OrderItemId']  = $producto[$i]['OrderItemId'];
+            $ShipmentRequestDetails['ShipmentRequestDetails.ItemList.Item.'.($i+1).'.Quantity']     = $producto[$i]['QuantityOrdered'];
 
         }
 
-        //print_r($ShipmentRequestDetails);exit();
+        return $this->request('GetEligibleShippingServices',$ShipmentRequestDetails);
 
-        print_r($this->request('GetEligibleShippingServices',$ShipmentRequestDetails));
-        exit();
+    }
+
+
+    /**
+     * Crea la peticion para un nuevo envio
+     * @param string $amazon_order Id de amazon
+     * @param string $shippingAddressName Nombre del cliente
+     * @param string $shippingAddressAddressLine1 Direccion del cliente
+     * @param string $shippingAddressCity Ciudad
+     * @param string $shippingAddressStateOrProvinceCode Provincia
+     * @param string $shippingAddressPostalCode Codigo postal
+     * @param string $shippingAddressCountryCode Codigo Pais
+     * @param string $shippingAddressEmail Email
+     * @param string $shippingAddressPhone Telefono
+     * @return bool
+     */
+    public function CreateShipment(
+        $amazon_order,
+        $ShippingServiceId,
+        $ShippingServiceOfferId,
+        $bulto_L,
+        $bulto_W,
+        $bulto_H,
+        $bulto_Weight,
+        $CarrierWillPickUp='true',
+        $bulto_type_unit_dimensions = "centimeters",
+        $bulto_type_unit_weight     = "grams"
+    ){
+
+        $data_by_amazon = $this->GetOrder($amazon_order);
+
+        $name=$data_by_amazon['ShippingAddress']['Name'];
+        $name= str_replace(',','',$name);
+        $name= str_replace('.','',$name);
+
+        $dir1 = "";
+        $dir2 = "";
+        if(isset($data_by_amazon['ShippingAddress']['AddressLine1'])){
+            $dir1 .= $data_by_amazon['ShippingAddress']['AddressLine1'];
+        }
+        if(isset($data_by_amazon['ShippingAddress']['AddressLine2'])){
+            $dir2 .= $data_by_amazon['ShippingAddress']['AddressLine2'];
+        }
+        
+        $ShipmentRequestDetails = array(
+            'ShipmentRequestDetails.AmazonOrderId'                              =>$amazon_order, //Id del pedido en amazon
+            'ShippingServiceId'                                                 =>$ShippingServiceId,
+            'ShippingServiceOfferId'                                            =>$ShippingServiceOfferId,
+
+            /**
+             * ShipmentRequestDetails
+             */
+            /** Personalizacion de las etiquetas */
+            //'ShipmentRequestDetails.LabelCustomization.CustomTextForLabel'      =>'',
+            //'ShipmentRequestDetails.LabelCustomization.StandardIdForLabel'      =>'',
+            /** Direccion y datos de entrega */
+            'ShipmentRequestDetails.ShipFromAddress.Name'                       =>$name,
+            'ShipmentRequestDetails.ShipFromAddress.AddressLine1'               =>$dir1,
+            'ShipmentRequestDetails.ShipFromAddress.AddressLine2'               =>$dir2,
+            'ShipmentRequestDetails.ShipFromAddress.City'                       =>$data_by_amazon['ShippingAddress']['City'],
+            //'ShipmentRequestDetails.ShipFromAddress.StateOrProvinceCode'        =>"",//$data_by_amazon['ShippingAddress']['StateOrRegion'],
+            'ShipmentRequestDetails.ShipFromAddress.PostalCode'                 =>$data_by_amazon['ShippingAddress']['PostalCode'],
+            'ShipmentRequestDetails.ShipFromAddress.CountryCode'                =>$data_by_amazon['ShippingAddress']['CountryCode'],
+            'ShipmentRequestDetails.ShipFromAddress.Email'                      =>$data_by_amazon['BuyerEmail'],
+            'ShipmentRequestDetails.ShipFromAddress.Phone'                      =>$data_by_amazon['ShippingAddress']['Phone'],
+            /** Dimensiones del envio */
+            'ShipmentRequestDetails.PackageDimensions.Length'                   =>$bulto_L,
+            'ShipmentRequestDetails.PackageDimensions.Width'                    =>$bulto_W,
+            'ShipmentRequestDetails.PackageDimensions.Height'                   =>$bulto_H,
+            'ShipmentRequestDetails.PackageDimensions.Unit'                     =>$bulto_type_unit_dimensions,
+            /** Peso del envio */
+            'ShipmentRequestDetails.Weight.Value'                               =>$bulto_Weight,
+            'ShipmentRequestDetails.Weight.Unit'                                =>$bulto_type_unit_weight,
+            /** Valores para la agencia */
+            'ShipmentRequestDetails.ShippingServiceOptions.DeliveryExperience'  =>'DeliveryConfirmationWithoutSignature',
+            'ShipmentRequestDetails.ShippingServiceOptions.CarrierWillPickUp'   =>$CarrierWillPickUp,
+            //'ShipmentRequestDetails.ShippingServiceOptions.DeclaredValue.CurrencyCode'    =>'EUR',
+            //'ShipmentRequestDetails.ShippingServiceOptions.DeclaredValue.Amount'          =>0,
+            'ShipmentRequestDetails.ShippingServiceOptions.LabelFormat'         =>'ZPL203'
+            
+        );
+
+        /** Recuperamos la informacion de los productos que se tienen que enviar. */
+        $producto = $this->ListOrderItems($amazon_order);
+
+        /** Añadimos las lineas del pedido a la generacion de etiquetas */
+        for($i=0;$i<count($producto);$i++){
+
+            $ShipmentRequestDetails['ShipmentRequestDetails.ItemList.Item.'.($i+1).'.OrderItemId']  = $producto[$i]['OrderItemId'];
+            $ShipmentRequestDetails['ShipmentRequestDetails.ItemList.Item.'.($i+1).'.Quantity']     = $producto[$i]['QuantityOrdered'];
+
+        }
+
+        return $this->request('CreateShipment',$ShipmentRequestDetails);
+
     }
 
 }
