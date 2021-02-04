@@ -1360,13 +1360,15 @@ class MWSClient
 
     /**
      * Recuperar la agencia de envio
-     * @param string $amazon_order Id de amazon
      *
+     * 
+     * @param string $amazon_order Id de amazon
+     * @param string $ShipFromAddress Dirección desde donde se envia.
      * @param array $bulto_L Dimensiones del paquete.
      * @param array $bulto_W Dimensiones del paquete.
      * @param array $bulto_H Dimensiones del paquete.
      * @param array $bulto_Weight Dimensiones del paquete.
-     *
+     * @param string $CarrierWillPickUp TRUE si el transportista tiene que recogerlo, FALSE enviarlo al transportista
      *
      * @return bool
      */
@@ -1380,8 +1382,7 @@ class MWSClient
         $CarrierWillPickUp='true',
         $bulto_type_unit_dimensions = "centimeters",
         $bulto_type_unit_weight     = "grams"
-    ){
-
+    ) {
         $ShipmentRequestDetails = array(
             'ShipmentRequestDetails.AmazonOrderId'                              =>$AmazonOrderId, //Id del pedido en amazon
             /** Direccion y datos de entrega */
@@ -1410,34 +1411,33 @@ class MWSClient
             
         );
 
+        /** Recuperar las lineas de productos */
         $producto = $this->ListOrderItems($AmazonOrderId);
 
 
         /** Añadimos las lineas del pedido a la generacion de etiquetas */
-        
-        for($i=0;$i<count($producto);$i++){
-
+        for ($i=0;$i<count($producto);$i++) {
             $ShipmentRequestDetails['ShipmentRequestDetails.ItemList.Item.'.($i+1).'.OrderItemId']  = $producto[$i]['OrderItemId'];
             $ShipmentRequestDetails['ShipmentRequestDetails.ItemList.Item.'.($i+1).'.Quantity']     = $producto[$i]['ProductInfo']['NumberOfItems'];
-
         }
 
-        return $this->request('GetEligibleShippingServices',$ShipmentRequestDetails);
-
+        return $this->request('GetEligibleShippingServices', $ShipmentRequestDetails);
     }
 
 
     /**
      * Crea la peticion para un nuevo envio
+     * 
      * @param string $amazon_order Id de amazon
-     * @param string $shippingAddressName Nombre del cliente
-     * @param string $shippingAddressAddressLine1 Direccion del cliente
-     * @param string $shippingAddressCity Ciudad
-     * @param string $shippingAddressStateOrProvinceCode Provincia
-     * @param string $shippingAddressPostalCode Codigo postal
-     * @param string $shippingAddressCountryCode Codigo Pais
-     * @param string $shippingAddressEmail Email
-     * @param string $shippingAddressPhone Telefono
+     * @param string $ShipFromAddress Direccion desde donde se envia
+     * @param string $ShippingServiceId Id del transportista
+     * @param string $ShippingServiceOfferId Id de la oferta del transportista
+     * @param string $bulto_L Length
+     * @param string $bulto_W Width
+     * @param string $bulto_H Height
+     * @param string $bulto_Weight Peso
+     * @param string $CarrierWillPickUp TRUE si el transportista tiene que recogerlo, FALSE enviarlo al transportista
+     * 
      * @return bool
      */
     public function CreateShipment(
@@ -1450,13 +1450,12 @@ class MWSClient
         $bulto_H,
         $bulto_Weight,
         $CarrierWillPickUp='true',
+        $CustomTextForLabel='',
+        $StandardIdForLabel='',
+        $LabelFormat='PNG',                             //PNG, ZPL203
         $bulto_type_unit_dimensions = "centimeters",
         $bulto_type_unit_weight     = "grams"
-    ){
-
-        //$data_by_amazon = $this->GetOrder($amazon_order);
-
-        
+    ) {
         $ShipmentRequestDetails = array(
             'ShipmentRequestDetails.AmazonOrderId'                              =>$amazon_order, //Id del pedido en amazon
             'ShippingServiceId'                                                 =>$ShippingServiceId,
@@ -1465,9 +1464,6 @@ class MWSClient
             /**
              * ShipmentRequestDetails
              */
-            /** Personalizacion de las etiquetas */
-            //'ShipmentRequestDetails.LabelCustomization.CustomTextForLabel'      =>'',
-            //'ShipmentRequestDetails.LabelCustomization.StandardIdForLabel'      =>'',
             /** Direccion y datos de entrega */
             'ShipmentRequestDetails.ShipFromAddress.Name'                       =>$ShipFromAddress['name'],
             'ShipmentRequestDetails.ShipFromAddress.AddressLine1'               =>$ShipFromAddress['AddressLine1'],
@@ -1488,24 +1484,26 @@ class MWSClient
             /** Valores para la agencia */
             'ShipmentRequestDetails.ShippingServiceOptions.DeliveryExperience'  =>'DeliveryConfirmationWithoutSignature',
             'ShipmentRequestDetails.ShippingServiceOptions.CarrierWillPickUp'   =>$CarrierWillPickUp,
-            //'ShipmentRequestDetails.ShippingServiceOptions.DeclaredValue.CurrencyCode'    =>'EUR',
-            //'ShipmentRequestDetails.ShippingServiceOptions.DeclaredValue.Amount'          =>0,
-            'ShipmentRequestDetails.ShippingServiceOptions.LabelFormat'         =>'PNG'//'ZPL203'
+            'ShipmentRequestDetails.ShippingServiceOptions.LabelFormat'         =>$LabelFormat
             
         );
+
+        if ($CustomTextForLabel!='') {
+            $ShipmentRequestDetails['ShipmentRequestDetails.LabelCustomization.CustomTextForLabel'] ='';
+        }
+        if ($StandardIdForLabel!='') {
+            $ShipmentRequestDetails['ShipmentRequestDetails.LabelCustomization.StandardIdForLabel'] ='';
+        }
 
         /** Recuperamos la informacion de los productos que se tienen que enviar. */
         $producto = $this->ListOrderItems($amazon_order);
 
         /** Añadimos las lineas del pedido a la generacion de etiquetas */
-        for($i=0;$i<count($producto);$i++){
-
+        for ($i=0;$i<count($producto);$i++) {
             $ShipmentRequestDetails['ShipmentRequestDetails.ItemList.Item.'.($i+1).'.OrderItemId']  = $producto[$i]['OrderItemId'];
-            $ShipmentRequestDetails['ShipmentRequestDetails.ItemList.Item.'.($i+1).'.Quantity']     = $producto[$i]['ProductInfo']['NumberOfItems'];406-6828013-9012300;
-
+            $ShipmentRequestDetails['ShipmentRequestDetails.ItemList.Item.'.($i+1).'.Quantity']     = $producto[$i]['ProductInfo']['NumberOfItems'];
         }
 
-        return $this->request('CreateShipment',$ShipmentRequestDetails);
-
+        return $this->request('CreateShipment', $ShipmentRequestDetails);
     }
 }
