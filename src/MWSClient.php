@@ -1314,54 +1314,9 @@ class MWSClient
     }
 
     /**
-     * Crear una nueva etiqueta amzon prime a partir de un pedido.
-     * @param array $orders Pedidos de amazon.
-     */
-    public function newEtiqueta($pedidos_amazon)
-    {
-
-        //Recoremos el array de pedidos.
-        for ($i=0;$i<count($pedidos_amazon);$i++) {
-            if ($pedidos_amazon[$i]['IsPrime']) {
-
-                //Repasar bultos.
-                for ($z=0;$z<count($pedidos_amazon[$i]['Bultos']);$z++) {
-                    $filto_direccion = "";
-                    if (isset($pedidos_amazon[$i]['ShippingAddress']['AddressLine1'])) {
-                        $filto_direccion .= $pedidos_amazon[$i]['ShippingAddress']['AddressLine1'];
-                    }
-                    if (isset($pedidos_amazon[$i]['ShippingAddress']['AddressLine2'])) {
-                        $filto_direccion .= " ".$pedidos_amazon[$i]['ShippingAddress']['AddressLine2'];
-                    }
-
-                    //Revisa los transportistas que se pueden seleccionar.
-                    $this->GetEligibleShippingServices(
-                        $pedidos_amazon[$i]['AmazonOrderId'],
-                        $pedidos_amazon[$i]['ShippingAddress']['Name'],
-                        $filto_direccion,
-                        $pedidos_amazon[$i]['ShippingAddress']['City'],
-                        $pedidos_amazon[$i]['ShippingAddress']['StateOrRegion'],
-                        $pedidos_amazon[$i]['ShippingAddress']['PostalCode'],
-                        $pedidos_amazon[$i]['ShippingAddress']['CountryCode'],
-                        $pedidos_amazon[$i]['BuyerEmail'],
-                        $pedidos_amazon[$i]['ShippingAddress']['Phone'],
-                        $pedidos_amazon[$i]['Bultos'][$z]['L'],
-                        $pedidos_amazon[$i]['Bultos'][$z]['W'],
-                        $pedidos_amazon[$i]['Bultos'][$z]['H'],
-                        $pedidos_amazon[$i]['Bultos'][$z]['Weight'],
-                        $pedidos_amazon[$i]['Bultos'][$z]['productos']
-                    );
-                }
-            }
-
-            break;
-        }
-    }
-
-    /**
      * Recuperar la agencia de envio
      *
-     * 
+     *
      * @param string $amazon_order Id de amazon
      * @param string $ShipFromAddress Dirección desde donde se envia.
      * @param array $bulto_L Dimensiones del paquete.
@@ -1427,7 +1382,7 @@ class MWSClient
 
     /**
      * Crea la peticion para un nuevo envio
-     * 
+     *
      * @param string $amazon_order Id de amazon
      * @param string $ShipFromAddress Direccion desde donde se envia
      * @param string $ShippingServiceId Id del transportista
@@ -1437,7 +1392,7 @@ class MWSClient
      * @param string $bulto_H Height
      * @param string $bulto_Weight Peso
      * @param string $CarrierWillPickUp TRUE si el transportista tiene que recogerlo, FALSE enviarlo al transportista
-     * 
+     *
      * @return bool
      */
     public function CreateShipment(
