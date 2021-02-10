@@ -1399,12 +1399,12 @@ class MWSClient
         $amazon_order,
         $ShipFromAddress,
         $ShippingServiceId,
-        $ShippingServiceOfferId,
         $bulto_L,
         $bulto_W,
         $bulto_H,
         $bulto_Weight,
         $CarrierWillPickUp='true',
+        $ShippingServiceOfferId='',
         $CustomTextForLabel='',
         $StandardIdForLabel='',
         $LabelFormat='PNG',                             //PNG, ZPL203
@@ -1414,8 +1414,7 @@ class MWSClient
         $ShipmentRequestDetails = array(
             'ShipmentRequestDetails.AmazonOrderId'                              =>$amazon_order, //Id del pedido en amazon
             'ShippingServiceId'                                                 =>$ShippingServiceId,
-            'ShippingServiceOfferId'                                            =>$ShippingServiceOfferId,
-
+            //'ShippingServiceOfferId'                                            =>$ShippingServiceOfferId,
             /**
              * ShipmentRequestDetails
              */
@@ -1449,6 +1448,9 @@ class MWSClient
         if ($StandardIdForLabel!='') {
             $ShipmentRequestDetails['ShipmentRequestDetails.LabelCustomization.StandardIdForLabel'] ='';
         }
+        if ($ShippingServiceOfferId!='') {
+            $ShipmentRequestDetails['ShippingServiceOfferId'] = $ShippingServiceOfferId;
+        }
 
         /** Recuperamos la informacion de los productos que se tienen que enviar. */
         $producto = $this->ListOrderItems($amazon_order);
@@ -1460,5 +1462,32 @@ class MWSClient
         }
 
         return $this->request('CreateShipment', $ShipmentRequestDetails);
+    }
+
+    /**
+     * Almacena en local la etiqueta.
+     * 
+     * @param array $shipment Respuesta de CreateShipment
+     * @param string $file Archivo donde se almacenara.
+     */
+    public function LabelShipmentToFile($shipment,$file=__DIR__.'/label'){
+
+        $formato = $shipment['CreateShipmentResult']['Shipment']['Label']['LabelFormat'];
+
+        $nombre_archivo = $$file.$formato;
+
+        if(file_exists($nombre_archivo)){
+            unlink($nombre_archivo);
+        }
+
+        $data = $shipment['CreateShipmentResult']['Shipment']['Label']['FileContents']['Contents'];
+        
+        $data = base64_decode($data);
+        $data = gzdecode($data);
+
+        $fp = fopen($nombre_archivo, 'w');
+        fwrite($fp, $data);
+        fclose($fp);
+
     }
 }

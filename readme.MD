@@ -1,6 +1,7 @@
 # Amazon Marketplace Webservices
 
-Interacción con Amazon Api para proveedores llamados MWS
+Interacción con Amazon Api para proveedores llamados MWS.
+Actualización de este fork permite recuperar datos de otros marketplace, actualizar tracking, validar agencias de envio y comprar etiquetas de envio.
 
 ### Instalar
 ```bash
@@ -118,6 +119,74 @@ $return = $client->setTracking(
     "Standard",             //Method
     "123456231231"          //Tracking
 );
+```
+
+### Listar los transportistas
+Ver todos los transportistas que ofrece amazon para comparar etiquetas.
+```php
+$return = $client->GetEligibleShippingServices(
+    '{AmazonOrderId}',
+    array(
+        'name'=>'Nombre de quien lo envia',
+        'AddressLine1'=>'Direccion desde donde se envia 1',
+        'AddressLine2'=>'Direccion desde donde se envia 2',
+        'City'=>'Ciudad',
+        'PostalCode'=>'Código postal',
+        'CountryCode'=>'Código de pais',
+        'BuyerEmail'=>'Email',
+        'Phone'=>'Telefono'
+    ),
+    '{Length}',
+    '{Width}',
+    '{Height}',
+    '{Weight}',
+    '{CarrierWillPickUp}', // TRUE o FALSE
+);
+
+print_r($return);
+```
+
+### Comprar etiquetas
+Comprar etiquetas en amazon.
+```php
+$return = $client->CreateShipment(
+    '{AmazonOrderId}',
+    array(
+        'name'=>'Nombre de quien lo envia',
+        'AddressLine1'=>'Direccion desde donde se envia 1',
+        'AddressLine2'=>'Direccion desde donde se envia 2',
+        'City'=>'Ciudad',
+        'PostalCode'=>'Código postal',
+        'CountryCode'=>'Código de pais',
+        'BuyerEmail'=>'Email',
+        'Phone'=>'Telefono'
+    ),
+    '{ShippingServiceId}',
+    '{Length}',
+    '{Width}',
+    '{Height}',
+    '{Weight}',
+    '{CarrierWillPickUp}',      // No obligatoria, TRUE o FALSE
+    '{ShippingServiceOfferId}', // No obligatoria, 
+    '{CustomTextForLabel}',     // No obligatoria, 
+    '{StandardIdForLabel}',     // No obligatoria, 
+    '{LabelFormat}',            // No obligatoria, PNG, ZPL203
+    '{bulto_type_unit_dimensions}', // No obligatoria, 
+    '{bulto_type_unit_weight}' // No obligatoria, 
+
+);
+
+print_r($return);
+```
+
+### Almacenar etiqueta
+Guarda la etiqueta recuperada por la compra, en un fichero
+```php
+$return = $client->LabelShipmentToFile(
+    '{ReturnCreateShipment}',
+    '{file}'
+);
+
 ```
 
 ### Available methods
