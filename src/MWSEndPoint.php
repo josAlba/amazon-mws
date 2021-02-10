@@ -3,8 +3,8 @@ namespace MCS;
 
 use Exception;
 
-class MWSEndPoint{
-
+class MWSEndPoint
+{
     public static $endpoints = [
         'ListRecommendations' => [
             'method' => 'POST',
@@ -145,6 +145,18 @@ class MWSEndPoint{
             'action' => 'GetLowestPricedOffersForASIN',
             'path' => '/Products/2011-10-01',
             'date' => '2011-10-01'
+        ],
+        'CreateShipment' => [
+            'method' => 'POST',
+            'action' => 'CreateShipment',
+            'path' => '/MerchantFulfillment/2015-06-01',
+            'date' => '2015-06-01'
+        ],
+        'GetEligibleShippingServices' => [
+            'method' => 'POST',
+            'action' => 'GetEligibleShippingServices',
+            'path' => '/MerchantFulfillment/2015-06-01',
+            'date' => '2015-06-01'
         ]
     ];
 

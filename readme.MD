@@ -1,12 +1,13 @@
 # Amazon Marketplace Webservices
 
-Interacción con Amazon Api para proveedores llamados MWS
+Interacción con Amazon Api para proveedores llamados MWS.
+Actualización de este fork permite recuperar datos de otros marketplace, actualizar tracking, validar agencias de envio y comprar etiquetas de envio.
 
-### Installation:
+### Instalar
 ```bash
 $ composer require josalba/amazon-mws
 ```
-### Initiate the client
+### Iniciar cliente
 ```php
 require_once 'vendor/autoload.php';
 
@@ -25,7 +26,7 @@ if ($client->validateCredentials()) {
     // Credentials are not valid
 }
 ```
-### Get orders
+### Recuperar pedidos
 ```php
 $fromDate = new DateTime('2016-01-01');
 $orders = $client->ListOrders($fromDate);
@@ -35,7 +36,7 @@ foreach ($orders as $order) {
     print_r($items);
 }
 ```
-### Get product attributes
+### Recuperar atributos producto
 ```php
 $searchField = 'ASIN'; // Can be GCID, SellerSKU, UPC, EAN, ISBN, or JAN
 
@@ -45,7 +46,7 @@ $result = $client->GetMatchingProductForId([
 
 print_r($result);
 ```
-### Create or update a product
+### Crear o actualizar producto
 ```php
 $product = new MCS\MWSProduct();
 $product->sku = 'TESTNOTFORSALE';
@@ -63,7 +64,7 @@ if ($product->validate()) {
 }  
 ```
 
-### Update product stock
+### Actualizar stock del productos
 ```php
 $result = $client->updateStock([
     'sku1' => 20,
@@ -75,7 +76,8 @@ $info = $client->GetFeedSubmissionResult($result['FeedSubmissionId']);
 print_r($info);
 ```
 
-### Update product stock with fulfillment latency specified
+### Actualizar stock y latencia del producto
+Actualizar stock y tiempo de preparacion del producto.
 ```php
 $result = $client->updateStockWithFulfillmentLatency([
     ['sku' => 'sku1', 'quantity' => 20, 'latency' => 1],
@@ -87,7 +89,7 @@ $info = $client->GetFeedSubmissionResult($result['FeedSubmissionId']);
 print_r($info);
 ```
 
-### Update product pricing
+### Actualizar precio de productos
 ```php
 $result = $client->updatePrice([
     'sku1' => '20.99',
@@ -108,8 +110,8 @@ $report_content = $client->GetReport($reportId);
 print_r($report_content);
 ```
 
-### Update tracking order
-Update the tracking of an amazon order.
+### Actualizar tracking
+Actualizar el tracking de un pedido.
 ```php
 $return = $client->setTracking(
     "XXX-XXXXXXX-XXXXXXX",  //Order id
@@ -117,6 +119,74 @@ $return = $client->setTracking(
     "Standard",             //Method
     "123456231231"          //Tracking
 );
+```
+
+### Listar los transportistas
+Ver todos los transportistas que ofrece amazon para comparar etiquetas.
+```php
+$return = $client->GetEligibleShippingServices(
+    '{AmazonOrderId}',
+    array(
+        'name'=>'Nombre de quien lo envia',
+        'AddressLine1'=>'Direccion desde donde se envia 1',
+        'AddressLine2'=>'Direccion desde donde se envia 2',
+        'City'=>'Ciudad',
+        'PostalCode'=>'Código postal',
+        'CountryCode'=>'Código de pais',
+        'BuyerEmail'=>'Email',
+        'Phone'=>'Telefono'
+    ),
+    '{Length}',
+    '{Width}',
+    '{Height}',
+    '{Weight}',
+    '{CarrierWillPickUp}', // TRUE o FALSE
+);
+
+print_r($return);
+```
+
+### Comprar etiquetas
+Comprar etiquetas en amazon.
+```php
+$return = $client->CreateShipment(
+    '{AmazonOrderId}',
+    array(
+        'name'=>'Nombre de quien lo envia',
+        'AddressLine1'=>'Direccion desde donde se envia 1',
+        'AddressLine2'=>'Direccion desde donde se envia 2',
+        'City'=>'Ciudad',
+        'PostalCode'=>'Código postal',
+        'CountryCode'=>'Código de pais',
+        'BuyerEmail'=>'Email',
+        'Phone'=>'Telefono'
+    ),
+    '{ShippingServiceId}',
+    '{Length}',
+    '{Width}',
+    '{Height}',
+    '{Weight}',
+    '{CarrierWillPickUp}',      // No obligatoria, TRUE o FALSE
+    '{ShippingServiceOfferId}', // No obligatoria, 
+    '{CustomTextForLabel}',     // No obligatoria, 
+    '{StandardIdForLabel}',     // No obligatoria, 
+    '{LabelFormat}',            // No obligatoria, PNG, ZPL203
+    '{bulto_type_unit_dimensions}', // No obligatoria, 
+    '{bulto_type_unit_weight}' // No obligatoria, 
+
+);
+
+print_r($return);
+```
+
+### Almacenar etiqueta
+Guarda la etiqueta recuperada por la compra, en un fichero
+```php
+$return = $client->LabelShipmentToFile(
+    '{ReturnCreateShipment}',
+    '{file}'
+);
+
 ```
 
 ### Available methods
